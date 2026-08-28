@@ -1,2 +1,2 @@
-# -JobLens-AI-
-Most students feel lost between academic theories and market reality. I built this tool to bridge that gap. Instead of guessing which skills matter, this analyzer transforms wordy job descriptions into actionable data, helping job seekers prioritize their learning path based on what local employers actually ask for.
+# -منظم-الطالب-
+Most students feel lost between academic theorieA study website that helps students study, review lessons, and check upcoming lessons. It's an easy-to-use study site.
