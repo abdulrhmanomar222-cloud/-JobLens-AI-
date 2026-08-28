@@ -1,470 +1,58 @@
-<!DOCTYPE html>
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+
+PAGE = r'''<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>JobLens AI - الذكاء الاصطناعي المتكامل</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', 'Tahoma', 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0a0f1e 0%, #0a1a2f 100%);
-            min-height: 100vh;
-            color: #fff;
-        }
-
-        .navbar {
-            background: rgba(10, 20, 30, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-            flex-wrap: wrap;
-        }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            font-size: 2.5rem;
-            background: linear-gradient(45deg, #00ffff, #ff00aa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .logo-text h1 {
-            font-size: 1.8rem;
-            background: linear-gradient(135deg, #fff, #00ccff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .logo-text p {
-            font-size: 0.8rem;
-            color: #88aaff;
-        }
-
-        .badge-saudi {
-            background: #006c35;
-            padding: 6px 12px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 20px;
-        }
-
-        .chat-wrapper {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 25px;
-        }
-
-        .chat-panel {
-            flex: 2;
-            min-width: 300px;
-            background: rgba(15, 25, 45, 0.6);
-            backdrop-filter: blur(12px);
-            border-radius: 32px;
-            border: 1px solid rgba(0, 255, 255, 0.25);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 70vh;
-        }
-
-        .chat-header {
-            padding: 1rem;
-            background: rgba(0, 20, 40, 0.7);
-            border-bottom: 1px solid #00ccff33;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .messages-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .message {
-            max-width: 85%;
-            padding: 12px 18px;
-            border-radius: 24px;
-            line-height: 1.5;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .user-message {
-            align-self: flex-end;
-            background: linear-gradient(135deg, #00aaff, #0066cc);
-            border-bottom-right-radius: 6px;
-        }
-
-        .ai-message {
-            align-self: flex-start;
-            background: rgba(30, 40, 60, 0.9);
-            border-bottom-left-radius: 6px;
-            border-right: 3px solid #00ffff;
-        }
-
-        .router-tag {
-            font-size: 0.7rem;
-            color: #88ddff;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .input-area {
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.5);
-            border-top: 1px solid #2c3e66;
-            display: flex;
-            gap: 12px;
-        }
-
-        textarea {
-            flex: 1;
-            background: #0f1a2c;
-            border: 1px solid #2c5a7a;
-            border-radius: 28px;
-            padding: 12px 20px;
-            color: white;
-            font-family: inherit;
-            resize: none;
-            font-size: 1rem;
-        }
-
-        button {
-            background: linear-gradient(45deg, #00ccff, #0099ff);
-            border: none;
-            padding: 0 24px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            color: #fff;
-            font-size: 1rem;
-        }
-
-        button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 12px #00ccffaa;
-        }
-
-        .media-panel {
-            flex: 1.2;
-            min-width: 280px;
-            background: rgba(15, 25, 45, 0.6);
-            backdrop-filter: blur(12px);
-            border-radius: 32px;
-            border: 1px solid rgba(0, 255, 255, 0.25);
-            padding: 1.2rem;
-        }
-
-        .media-section {
-            margin-bottom: 30px;
-        }
-
-        .media-section h3 {
-            margin-bottom: 15px;
-            border-right: 4px solid #00ffff;
-            padding-right: 12px;
-        }
-
-        .gen-form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 10px;
-        }
-
-        .gen-form input, .gen-form textarea {
-            background: #0f1a2c;
-            border: 1px solid #2c5a7a;
-            border-radius: 20px;
-            padding: 10px;
-            color: white;
-        }
-
-        .media-output {
-            margin-top: 20px;
-            background: #0a0f1e80;
-            border-radius: 24px;
-            padding: 12px;
-            text-align: center;
-        }
-
-        img, video {
-            max-width: 100%;
-            border-radius: 16px;
-            margin-top: 10px;
-            border: 1px solid cyan;
-        }
-
-        .loading {
-            color: cyan;
-            font-size: 0.9rem;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            font-size: 0.8rem;
-            color: #88aaff;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px);}
-            to { opacity: 1; transform: translateY(0);}
-        }
-    </style>
-</head>
-<body>
-
-<div class="navbar">
-    <div class="logo-area">
-        <div class="logo-icon">🧠⚡</div>
-        <div class="logo-text">
-            <h1>JobLens AI</h1>
-            <p>Saudi-led Digital Guidance | التوجيه الرقمي السعودي</p>
-        </div>
-    </div>
-    <div class="badge-saudi">
-        🇸🇦 AI Orchestrator | محور الذكاءات
-    </div>
-</div>
-
-<div class="container">
-    <div class="chat-wrapper">
-        <div class="chat-panel">
-            <div class="chat-header">
-                <span>🤖 مساعد JobLens AI - التوجيه الذكي للمتخصصين</span>
-                <span style="font-size:12px;">🔄 Gemini | DeepSeek | Code Expert</span>
-            </div>
-            <div class="messages-area" id="messagesArea">
-                <div class="message ai-message">
-                    <div class="router-tag">🎯 النظام الأساسي</div>
-                    مرحباً بك في JobLens AI! أنا ناقل ذكي يوجه أسئلتك لأفضل نموذج:<br>
-                    • أسئلة البرمجة → Code Expert (GPT-4o class)<br>
-                    • معلومات عامة/معرفة → Gemini AI<br>
-                    • الأمن السيبراني → DeepSeek<br>
-                    • كما يمكنني إنشاء صور وفيديوهات تصل مدتها إلى أكثر من 55 دقيقة!<br>
-                    جرب أن تسألني أي شيء.
-                </div>
-            </div>
-            <div class="input-area">
-                <textarea id="userInput" rows="1" placeholder="اكتب سؤالك هنا... (برمجة، معلومات، أمن سيبراني، أو اطلب صورة/فيديو)"></textarea>
-                <button id="sendBtn">إرسال ➤</button>
-            </div>
-        </div>
-
-        <div class="media-panel">
-            <div class="media-section">
-                <h3>🎨 توليد الصور</h3>
-                <div class="gen-form">
-                    <input type="text" id="imgPrompt" placeholder="وصف الصورة المطلوبة">
-                    <button id="genImageBtn">إنشاء صورة</button>
-                </div>
-            </div>
-            <div class="media-section">
-                <h3>🎥 فيديوهات طويلة (حتى 60+ دقيقة)</h3>
-                <div class="gen-form">
-                    <textarea id="videoPrompt" rows="2" placeholder="وصف الفيديو الطويل (قصّة، تعليم، عرض)"></textarea>
-                    <input type="text" id="durationHint" placeholder="المدة المطلوبة مثلاً: 58 دقيقة">
-                    <button id="genVideoBtn">🎬 إنشاء فيديو طويل</button>
-                </div>
-            </div>
-            <div class="media-output" id="mediaOutput">
-                <div style="color:#aaa;">ستظهر الصور والفيديوهات هنا 📸</div>
-            </div>
-        </div>
-    </div>
-</div>
-<footer>
-    🇸🇦 JobLens AI Hub - التوجيه الذكي بين Gemini, DeepSeek, Code Expert | إنتاج فيديوهات متقدمة حتى 55+ دقيقة
-</footer>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مُنظِّم الطالب</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Changa:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#17324d;--muted:#718196;--paper:#f7faf9;--white:#fff;--mint:#d9f1e8;--green:#2d9b72;--orange:#f3a451;--line:#e7eeeb;--shadow:0 18px 45px #183d5020}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Almarai,sans-serif}button,input{font:inherit}button{border:0;cursor:pointer}.shell{min-height:100vh;display:flex}.side{width:245px;background:#17324d;color:#dce9eb;padding:28px 18px;display:flex;flex-direction:column;gap:28px;position:fixed;right:0;top:0;bottom:0;z-index:4}.brand{display:flex;align-items:center;gap:10px;color:#fff;font-family:Changa;font-size:20px}.brand-badge{background:#f3a451;color:#17324d;border-radius:13px;width:38px;height:38px;display:grid;place-items:center;font-size:21px}.user-mini{background:#244761;border-radius:18px;padding:13px;display:flex;align-items:center;gap:10px;font-size:12px}.avatar{width:35px;height:35px;border-radius:50%;background:#f4c398;color:#17324d;display:grid;place-items:center;font-size:18px}.nav{display:grid;gap:6px}.nav button{color:#b7cbd0;background:transparent;text-align:right;padding:13px 14px;border-radius:11px;font-size:13px}.nav button:hover,.nav button.active{background:#2c526b;color:#fff}.side-bottom{margin-top:auto;font-size:11px;color:#84a4aa;line-height:1.8}.main{margin-right:245px;width:calc(100% - 245px);padding:24px 45px 30px}.topbar{height:56px;display:flex;align-items:center;justify-content:space-between}.topbar .brand{color:var(--ink);font-size:16px}.points{background:#fff;padding:9px 14px;border-radius:12px;font-size:12px;font-weight:700;box-shadow:0 4px 13px #183d500b}.points span{color:var(--orange);font-size:16px}.view{max-width:1130px;margin:35px auto 0}.eyebrow{color:var(--green);font-size:12px;font-weight:bold;margin-bottom:10px}.hero{display:flex;align-items:end;justify-content:space-between;margin-bottom:28px}.hero h1{font-family:Changa;font-size:32px;line-height:1.4;margin:0 0 9px}.hero p{color:var(--muted);font-size:13px;margin:0}.date{color:var(--muted);font-size:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:27px}.stat,.panel,.task,.tip{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 22px #183d5008}.stat{padding:19px}.stat-icon{font-size:25px;display:block;margin-bottom:14px}.stat strong{font-size:22px}.stat small{display:block;color:var(--muted);font-size:11px;margin-top:7px}.dashboard-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px}.panel{padding:22px}.panel h2{font-family:Changa;font-size:18px;margin:0 0 19px}.section-head{display:flex;align-items:center;justify-content:space-between}.link-btn{background:none;color:var(--green);font-size:12px}.schedule-row{display:grid;grid-template-columns:72px 1fr auto;align-items:center;gap:15px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}.schedule-row:last-child{border:0}.time{color:var(--muted);font-size:11px}.subject{font-weight:bold}.now{background:#e1f5eb;color:var(--green);border-radius:20px;padding:5px 9px;font-size:10px}.task{padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:11px}.check{width:20px;height:20px;border:1.5px solid #b8c8c9;border-radius:6px;background:#fff;color:#fff;display:grid;place-items:center;flex:none}.task.done .check{background:var(--green);border-color:var(--green)}.task.done .task-title{text-decoration:line-through;color:var(--muted)}.task-title{font-size:12px;font-weight:bold}.task-due{font-size:10px;color:var(--muted);margin-top:5px}.progress{height:9px;background:#e8f0ed;border-radius:20px;overflow:hidden;margin:15px 0 10px}.progress i{display:block;height:100%;background:var(--green);border-radius:20px;width:70%}.streak{color:#e38a43;font-size:11px}.page-title{font-family:Changa;font-size:29px;margin:0 0 22px}.tabs{display:flex;gap:8px;margin-bottom:17px;overflow:auto}.tab{background:#eaf2ef;color:var(--muted);border-radius:10px;padding:10px 18px;font-size:12px;white-space:nowrap}.tab.active{background:var(--ink);color:#fff}.table{overflow:hidden}.table-row{display:grid;grid-template-columns:1fr 2fr auto;padding:16px 20px;border-bottom:1px solid var(--line);font-size:13px}.table-head{background:#eff7f3;color:var(--muted);font-size:11px;font-weight:bold}.add-btn,.primary{background:var(--green);color:#fff;padding:12px 18px;border-radius:11px;font-weight:bold;font-size:12px}.table-actions{margin-top:18px}.task-card{padding:20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.task-card h3{font-size:14px;margin:0 0 8px}.task-card p{color:var(--muted);font-size:12px;margin:0 0 10px}.due{font-size:11px;color:#c8813e}.task-card .done-label{font-size:11px;color:var(--muted)}.timer-page{max-width:650px;text-align:center;margin:45px auto}.timer-page h1{font-family:Changa;font-size:29px}.timer-circle{width:280px;height:280px;border-radius:50%;margin:30px auto 24px;background:#fff;border:12px solid var(--mint);box-shadow:var(--shadow);display:grid;place-items:center;font-family:Changa;font-size:46px;color:var(--ink)}.timer-controls{display:flex;justify-content:center;gap:10px}.timer-controls button{border-radius:11px;padding:12px 20px;font-size:12px;background:#e9f0ed;color:var(--ink)}.timer-controls .start{background:var(--green);color:#fff}.timer-note{color:var(--muted);font-size:12px;margin-top:22px}.tips{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}.tip{padding:21px}.tip b{display:block;font-family:Changa;font-size:15px;margin-bottom:8px}.tip p{margin:0;color:var(--muted);font-size:12px;line-height:1.8}.modal-back{position:fixed;inset:0;background:#17324d66;display:grid;place-items:center;z-index:10}.modal{background:#fff;border-radius:18px;padding:25px;width:min(420px,90vw);box-shadow:var(--shadow)}.modal h2{font-family:Changa;font-size:19px;margin:0 0 18px}.modal input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;color:var(--ink);background:#fbfdfc}.modal-actions{display:flex;gap:8px;margin-top:8px}.secondary{background:#edf3f1;color:var(--ink);padding:11px 16px;border-radius:10px}.toast{position:fixed;bottom:25px;right:50%;transform:translateX(50%);background:var(--ink);color:#fff;padding:13px 20px;border-radius:12px;font-size:12px;z-index:20;animation:pop .25s ease}.hidden{display:none!important}@keyframes pop{from{opacity:0;transform:translate(50%,10px)}to{opacity:1;transform:translate(50%,0)}}footer{text-align:center;color:#98a9aa;font-size:10px;margin-top:45px}
+.auth{min-height:100vh;display:grid;place-items:center;padding:25px;background:radial-gradient(circle at 15% 20%,#d9f1e8 0 16%,transparent 17%),radial-gradient(circle at 90% 80%,#fde5c9 0 14%,transparent 15%),var(--paper)}.auth-card{width:min(570px,100%);background:#fff;border:1px solid var(--line);border-radius:24px;padding:48px;text-align:center;box-shadow:var(--shadow)}.auth-card .brand{justify-content:center;color:var(--ink);font-size:22px}.auth-card h1{font-family:Changa;font-size:31px;margin:25px 0 10px}.auth-card p{color:var(--muted);font-size:13px;margin:0 0 28px}.auth-actions{display:grid;gap:10px}.auth-actions button{padding:14px;border-radius:11px;font-weight:bold;font-size:13px}.login{background:var(--blue);color:#fff}.signup{background:var(--green);color:#fff}.quick{background:#8061c7;color:#fff}.auth-note{font-size:11px!important;margin:22px 0 0!important}
+.hero h1 .link-btn{font-size:18px;padding:4px 7px;vertical-align:middle}
+@media(max-width:900px){.side{width:78px;padding:22px 10px}.brand span,.user-mini div,.nav button span,.side-bottom{display:none}.brand{justify-content:center}.user-mini{justify-content:center}.nav button{text-align:center;font-size:21px;padding:11px}.main{margin-right:78px;width:calc(100% - 78px);padding:18px 22px}.cards{grid-template-columns:repeat(2,1fr)}.dashboard-grid{grid-template-columns:1fr}}
+@media(max-width:550px){.main{padding:14px}.topbar .brand{font-size:14px}.view{margin-top:25px}.hero{display:block}.hero h1{font-size:25px}.date{margin-top:13px}.cards{gap:9px}.stat{padding:14px}.stat strong{font-size:18px}.stat-icon{font-size:21px}.tips{grid-template-columns:1fr}.timer-circle{width:235px;height:235px;font-size:38px}.timer-controls button{padding:11px 13px}.page-title{font-size:24px}}
+</style></head><body>
+<div id="welcome" class="auth"><div class="auth-card"><div class="brand"><div class="brand-badge">🎓</div> مُنظِّم الطالب</div><h1>نظّم يومك… وأنجز أكثر!</h1><p>منصة بسيطة تساعدك على تنظيم دراستك وواجباتك ووقتك.</p><div class="auth-actions"><button class="login" onclick="showLogin()">🔵 تسجيل الدخول</button><button class="signup" onclick="showSignup()">🟢 إنشاء حساب جديد</button><button class="quick" onclick="quickLogin()">🟣 دخول سريع</button></div><p class="auth-note">ابدأ رحلتك الدراسية اليوم ⭐</p></div></div><div id="app" class="shell hidden"><aside class="side"><div class="brand"><div class="brand-badge">🎓</div><span>مُنظِّم الطالب</span></div><div class="user-mini"><div class="avatar">👤</div><div><b>محمد أحمد</b><br><small>الأول متوسط</small></div></div><nav class="nav"><button class="active" data-page="home">🏠 <span>الرئيسية</span></button><button data-page="schedule">📅 <span>الجدول</span></button><button data-page="tasks">📝 <span>واجباتي</span></button><button data-page="timer">⏱️ <span>المذاكرة</span></button><button data-page="tips">💡 <span>نصائح</span></button><button data-action="logout">🚪 <span>تسجيل الخروج</span></button></nav><div class="side-bottom">خطط • أنجز • تطوّر<br>© منظّم الطالب 2025</div></aside><main class="main"><header class="topbar"><div class="brand"><div class="brand-badge">🎓</div> مُنظِّم الطالب</div><button class="points" id="profile">⭐ <span id="points">80</span> نقطة　👤</button></header><div id="content"></div><footer>© منظّم الطالب　|　خطط • أنجز • تفوق 🌟</footer></main></div><div id="modal-root"></div><div id="toast" class="hidden"></div>
 <script>
-    const messagesArea = document.getElementById('messagesArea');
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const genImageBtn = document.getElementById('genImageBtn');
-    const genVideoBtn = document.getElementById('genVideoBtn');
-    const imgPromptInput = document.getElementById('imgPrompt');
-    const videoPromptInput = document.getElementById('videoPrompt');
-    const durationHint = document.getElementById('durationHint');
-    const mediaOutput = document.getElementById('mediaOutput');
+const state={name:localStorage.getItem('studentName')||'',page:'home',points:80,tasks:[{title:'حل تمارين الرياضيات صفحة 45',due:'اليوم',done:false},{title:'قراءة درس العلوم',due:'غدًا',done:false},{title:'حفظ كلمات اللغة الإنجليزية',due:'الأحد',done:false}],schedule:[['07:00','رياضيات ➗'],['08:00','علوم 🔬'],['09:00','لغتي 📖'],['10:00','إنجليزي 🇬🇧'],['11:00','دراسات اجتماعية 🌍']]};const content=document.getElementById('content');
+function render(){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));content.innerHTML={home,schedule,tasks,timer,tips}[state.page]();document.querySelector(".user-mini b").textContent=state.name;bind()}
+function home(){return `<section class="view"><div class="hero"><div><h1>صباح الخير يا ${state.name} ☀️ <button class="link-btn" data-action="edit-name" title="تعديل الاسم">✎</button></h1><p>لديك 3 مهام اليوم. هيا ننجزها! 💪</p></div><div class="date">آخر تحديث: منذ قليل</div></div><div class="cards"><div class="stat"><span class="stat-icon">📚</span><strong>5</strong><small>حصصي اليوم</small></div><div class="stat"><span class="stat-icon">📝</span><strong>${state.tasks.filter(t=>!t.done).length}</strong><small>واجبات متبقية</small></div><div class="stat"><span class="stat-icon">⏰</span><strong>45</strong><small>دقيقة مذاكرة</small></div><div class="stat"><span class="stat-icon">⭐</span><strong>${state.points}</strong><small>نقاطي</small></div></div><div class="dashboard-grid"><div class="panel"><div class="section-head"><h2>جدولي اليوم</h2><button class="link-btn" data-go="schedule">عرض الجدول ←</button></div>${state.schedule.map((s,i)=>`<div class="schedule-row"><span class="time">${s[0]}</span><span class="subject">${s[1]}</span>${i===1?'<span class="now">الآن</span>':''}</div>`).join('')}</div><div class="panel"><div class="section-head"><h2>مهامي القادمة</h2><button class="link-btn" data-go="tasks">كل المهام ←</button></div>${state.tasks.map((t,i)=>taskMarkup(t,i)).join('')}</div></div></section>`}
+function taskMarkup(t,i){return `<div class="task ${t.done?'done':''}"><button class="check" data-task="${i}">${t.done?'✓':''}</button><div><div class="task-title">${t.title}</div><div class="task-due">موعد التسليم: ${t.due}</div></div></div>`}
+function schedule(){return `<section class="view"><h1 class="page-title">جدولي الدراسي 📚</h1><div class="tabs">${['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس'].map((d,i)=>`<button class="tab ${i===0?'active':''}">${d}</button>`).join('')}</div><div class="panel table"><div class="table-row table-head"><span>الوقت</span><span>المادة</span></div>${state.schedule.map(s=>`<div class="table-row"><span>${s[0]}</span><span>${s[1]}</span></div>`).join('')}</div><div class="table-actions"><button class="add-btn" id="add-class">＋ إضافة حصة</button></div></section>`}
+function tasks(){let done=state.tasks.filter(t=>t.done).length;return `<section class="view"><h1 class="page-title">واجباتي 📝</h1><div class="panel" style="margin-bottom:18px"><div class="section-head"><b>إنجاز واجبات اليوم: ${Math.round(done/state.tasks.length*100)}%</b><span class="streak">🔥 3 أيام متتالية</span></div><div class="progress"><i style="width:${done/state.tasks.length*100}%"></i></div></div>${state.tasks.map((t,i)=>`<div class="task-card"><div><h3>${t.title.split(' ').slice(0,2).join(' ')}</h3><p>${t.title}</p><span class="due">📅 موعد التسليم: ${t.due}</span></div><button class="task ${t.done?'done':''}" data-task="${i}"><span class="check">${t.done?'✓':''}</span><span class="done-label">${t.done?'تم الإنجاز':'لم يتم الإنجاز'}</span></button></div>`).join('')}</section>`}
+function timer(){return `<section class="timer-page"><div class="eyebrow">مساحة هادئة للتركيز</div><h1>وقت المذاكرة ⏱️</h1><div class="timer-circle" id="clock">25:00</div><div class="timer-controls"><button class="start" id="start">▶ ابدأ</button><button id="pause">⏸ إيقاف مؤقت</button><button id="reset">↻ إعادة</button></div><p class="timer-note">طريقة 25 دقيقة مذاكرة + 5 دقائق راحة</p></section>`}
+function progress(){return `<section class="view"><h1 class="page-title">تقدّمك وإنجازاتك 🏆</h1><div class="panel" style="max-width:600px"><div class="section-head"><h2>مجموع نقاطك</h2><strong style="font-size:24px">⭐ ${state.points}</strong></div><div class="progress"><i style="width:${Math.min(state.points,100)}%"></i></div><p class="streak">🔥 3 أيام متتالية من الإنجاز!</p><p style="font-size:12px;color:var(--muted)">هدفك القادم: 100 نقطة 🏆</p></div></section>`}
+function tips(){return `<section class="view"><h1 class="page-title">نصائح تساعدك 💡</h1><div class="tips">${[['💧','اشرب الماء','احرص على شرب الماء أثناء المذاكرة.'],['📵','أبعد المشتتات','ضع الهاتف بعيدًا أثناء وقت المذاكرة.'],['🧠','خذ فترات راحة','لا تذاكر لساعات طويلة دون استراحة.'],['😴','نم جيدًا','النوم يساعدك على التركيز والتعلم.']].map(x=>`<div class="tip"><b>${x[0]} ${x[1]}</b><p>${x[2]}</p></div>`).join('')}</div></section>`}
+function editName(){modal('تعديل الاسم','<input id="name-input" value="" placeholder="اسم الطالب"><div class="modal-actions"><button class="primary" id="save-name">حفظ</button><button class="secondary" id="close-modal">إلغاء</button></div>');document.getElementById('save-name').onclick=()=>{const name=document.getElementById('name-input').value.trim();if(name){state.name=name;localStorage.setItem('studentName',name);document.getElementById('modal-root').innerHTML='';render();toast('تم حفظ الاسم بنجاح')}};document.getElementById('close-modal').onclick=()=>document.getElementById('modal-root').innerHTML=''}function logout(){document.getElementById("app").classList.add("hidden");document.getElementById("welcome").classList.remove("hidden");toast("تم تسجيل الخروج بنجاح")}function editSlot(index){const slot=state.schedule[index];modal("تعديل الحصة",`<input id="subject" value="${slot[1]}" placeholder="اسم المادة"><input id="class-time" type="time" value="${slot[0]}"><div class="modal-actions"><button class="primary" id="save-class">حفظ التعديل</button><button class="secondary" id="close-modal">إلغاء</button></div>`);document.getElementById("save-class").onclick=()=>{state.schedule[index]=[document.getElementById("class-time").value,document.getElementById("subject").value.trim()||"حصة جديدة"];document.getElementById("modal-root").innerHTML="";render();toast("تم حفظ تعديل الحصة")};document.getElementById("close-modal").onclick=()=>document.getElementById("modal-root").innerHTML=""}function bind(){if(state.page==="schedule"){document.querySelectorAll(".table-row:not(.table-head)").forEach((row,index)=>{const button=document.createElement("button");button.className="link-btn";button.textContent="✎";button.title="تعديل الحصة";button.onclick=()=>editSlot(index);row.appendChild(button)})}document.querySelectorAll("[data-action=logout]").forEach(b=>b.onclick=logout);document.querySelectorAll("[data-action=edit-name]").forEach(b=>b.onclick=editName);document.querySelectorAll("[data-slot]").forEach(b=>b.onclick=()=>editSlot(+b.dataset.slot));document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{state.page=b.dataset.page;render()});document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{state.page=b.dataset.go;render()});document.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>{const i=+b.dataset.task;if(!state.tasks[i].done){state.tasks[i].done=true;state.points+=10;document.getElementById('points').textContent=state.points;toast('🎉 أحسنت! أنجزت واجبك. +10 نقاط');if(state.points>=100)setTimeout(()=>toast('🏆 مبروك! وصلت إلى 100 نقطة!'),500)}render()});const add=document.getElementById('add-class');if(add)add.onclick=classModal;if(document.getElementById('start'))timerBind()}
+function timerBind(){let seconds=1500,id;const clock=document.getElementById('clock'),paint=()=>clock.textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;document.getElementById('start').onclick=()=>{clearInterval(id);id=setInterval(()=>{if(seconds>0){seconds--;paint()}else{clearInterval(id);modal('🎉 انتهت جلسة المذاكرة!','خذ استراحة لمدة 5 دقائق.')}},1000)};document.getElementById('pause').onclick=()=>clearInterval(id);document.getElementById('reset').onclick=()=>{clearInterval(id);seconds=1500;paint()}}
+function classModal(){modal('إضافة حصة',`<input id="subject" placeholder="اسم المادة"><input id="class-time" type="time" value="07:00"><div class="modal-actions"><button class="primary" id="save-class">حفظ الحصة</button><button class="secondary" id="close-modal">إلغاء</button></div>`);document.getElementById('save-class').onclick=()=>{const subject=document.getElementById('subject').value.trim()||'حصة جديدة';state.schedule.push([document.getElementById('class-time').value,subject]);document.getElementById('modal-root').innerHTML='';render();toast('تمت إضافة الحصة إلى جدولك')};document.getElementById('close-modal').onclick=()=>document.getElementById('modal-root').innerHTML=''}
+function modal(title,body){document.getElementById('modal-root').innerHTML=`<div class="modal-back"><div class="modal"><h2>${title}</h2><div>${body}</div></div></div>`}function toast(text){const el=document.getElementById('toast');el.textContent=text;el.classList.remove('hidden');setTimeout(()=>el.classList.add('hidden'),2600)}
+function enterApp(){document.getElementById("welcome").classList.add("hidden");document.getElementById("app").classList.remove("hidden");render()}function quickLogin(){toast("جارٍ تجهيز حسابك...");setTimeout(enterApp,500)}function showLogin(){enterApp()}function showSignup(){enterApp()}document.getElementById('profile').onclick=()=>modal('محمد أحمد',`<p style="font-size:12px;color:var(--muted)">📧 student24@munazem-demo.local</p><p style="font-size:12px;color:var(--muted)">الأول متوسط</p><div class="modal-actions"><button class="primary" id="logout">🚪 تسجيل الخروج</button><button class="secondary" id="close-modal">إغلاق</button></div>`);document.addEventListener('click',e=>{if(e.target.id==='close-modal')document.getElementById('modal-root').innerHTML='';if(e.target.id==='logout'){document.getElementById('modal-root').innerHTML='';toast('تم تسجيل الخروج بنجاح')}});render();
+</script></body></html>'''
 
-    function addMessage(text, isUser = false, routerInfo = null) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-        if (!isUser && routerInfo) {
-            const tagSpan = document.createElement('div');
-            tagSpan.className = 'router-tag';
-            tagSpan.innerHTML = `🔀 تم التوجيه إلى: ${routerInfo}`;
-            msgDiv.appendChild(tagSpan);
-        }
-        const contentSpan = document.createElement('div');
-        contentSpan.innerText = text;
-        msgDiv.appendChild(contentSpan);
-        messagesArea.appendChild(msgDiv);
-        messagesArea.scrollTop = messagesArea.scrollHeight;
-    }
 
-    function showLoading(show) {
-        let loadEl = document.getElementById('tempLoading');
-        if (show) {
-            if (!loadEl) {
-                loadEl = document.createElement('div');
-                loadEl.id = 'tempLoading';
-                loadEl.className = 'message ai-message';
-                loadEl.innerHTML = '<div class="router-tag">⏳ جاري المعالجة والتوجيه...</div><div>يتصل بأفضل نموذج...</div>';
-                messagesArea.appendChild(loadEl);
-                messagesArea.scrollTop = messagesArea.scrollHeight;
-            }
-        } else {
-            if (loadEl) loadEl.remove();
-        }
-    }
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path in ('/', '/index.html'):
+            body = PAGE.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        else:
+            self.send_error(404)
 
-    function routeQuery(userQuery) {
-        const lowerQuery = userQuery.toLowerCase();
-        if (lowerQuery.includes('أمن سيبراني') || lowerQuery.includes('سيبراني') || lowerQuery.includes('اختراق') || lowerQuery.includes('hack') || lowerQuery.includes('firewall') || lowerQuery.includes('cyber')) {
-            return { expert: 'DeepSeek (خبير الأمن السيبراني)', endpoint: 'deepseek' };
-        }
-        else if (lowerQuery.includes('برمجة') || lowerQuery.includes('كود') || lowerQuery.includes('برمج') || lowerQuery.includes('بايثون') || lowerQuery.includes('جافا') || lowerQuery.includes('جافا سكربت') || lowerQuery.includes('html') || lowerQuery.includes('css') || lowerQuery.includes('خوارزمية') || lowerQuery.includes('algorithm') || lowerQuery.includes('coding')) {
-            return { expert: 'Code Expert (GPT-4o متخصص برمجي)', endpoint: 'codex' };
-        }
-        else if (lowerQuery.includes('ما هو') || lowerQuery.includes('معلومات عن') || lowerQuery.includes('تاريخ') || lowerQuery.includes('علوم') || lowerQuery.includes('اخبار') || lowerQuery.includes('من هو') || lowerQuery.includes('شرح')) {
-            return { expert: 'Gemini AI (المعرفة الشاملة)', endpoint: 'gemini' };
-        }
-        else {
-            return { expert: 'Gemini AI (المعلومات العامة)', endpoint: 'gemini' };
-        }
-    }
+    def log_message(self, *_):
+        return
 
-    async function callExpert(endpoint, userMessage) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        if (endpoint === 'deepseek') {
-            return `🛡️ [DeepSeek - الأمن السيبراني]: استجابة متخصصة في الأمن السيبراني لسؤالك: "${userMessage}". تأكد من تحديث الأنظمة واستخدام كلمات مرور قوية، وتفعيل المصادقة الثنائية. (محاكاة متقدمة)`;
-        } 
-        else if (endpoint === 'codex') {
-            return `💻 [Code Expert - خوارزميات البرمجة]: مرحباً! هذا حل برمجي متقدم لاستفسارك "${userMessage}".\n\nمثال: \`\`\`python\ndef solve_problem():\n    print("أفضل ممارسات البرمجة مع JobLens AI")\n\`\`\`\nيمكنك التوسع أكثر حسب احتياجك.`;
-        }
-        else {
-            return `🌐 [Gemini AI - موسوعة المعرفة]: سؤالك: "${userMessage}". هذا رد شامل: بناءً على أحدث البيانات، الإجابة تتضمن معلومات دقيقة ومحدثة. (JobLens AI يضمن الجودة) ✨`;
-        }
-    }
 
-    async function handleUserQuery() {
-        const query = userInput.value.trim();
-        if (!query) return;
-        addMessage(query, true);
-        userInput.value = '';
-        showLoading(true);
-        
-        const routing = routeQuery(query);
-        addMessage(`🔍 جارٍ التوجيه إلى ${routing.expert}...`, false, "نظام التوجيه");
-        
-        try {
-            const responseText = await callExpert(routing.endpoint, query);
-            showLoading(false);
-            addMessage(responseText, false, routing.expert);
-        } catch (err) {
-            showLoading(false);
-            addMessage(`⚠️ عذراً، حدث خطأ في الاتصال بالخبير: ${err.message}`, false, "نظام الطوارئ");
-        }
-    }
-
-    async function generateImage() {
-        const prompt = imgPromptInput.value.trim();
-        if (!prompt) {
-            mediaOutput.innerHTML = `<div style="color:#ffaa88;">⚠️ الرجاء كتابة وصف الصورة</div>`;
-            return;
-        }
-        mediaOutput.innerHTML = `<div class="loading">🎨 جاري توليد الصورة باستخدام الذكاء الاصطناعي ...</div>`;
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        const fakeImageUrl = `https://picsum.photos/id/${Math.floor(Math.random() * 200)}/400/300`;
-        mediaOutput.innerHTML = `
-            <div style="background:#0a142e; border-radius: 20px; padding: 10px;">
-                <strong>🖼️ الصورة المولدة:</strong><br>
-                <img src="${fakeImageUrl}" alt="AI Generated Image" style="max-width:100%; border-radius: 16px;">
-                <p style="font-size:12px; margin-top:6px;">الوصف: ${prompt} (نظام JobLens AI - يمكن ربطه بـ DALL·E/Stable Diffusion)</p>
-            </div>
-        `;
-    }
-
-    async function generateLongVideo() {
-        const prompt = videoPromptInput.value.trim();
-        let duration = durationHint.value.trim();
-        if (!prompt) {
-            mediaOutput.innerHTML = `<div style="color:#ffaa88;">⚠️ أدخل وصفاً للفيديو الطويل أولاً</div>`;
-            return;
-        }
-        if (!duration) duration = "55:00 دقيقة";
-        mediaOutput.innerHTML = `<div class="loading">🎥 جاري تحضير فيديو طويل يتجاوز ${duration} ... (قد يستغرق بعض الوقت) ...</div>`;
-        
-        await new Promise(resolve => setTimeout(resolve, 3500));
-        
-        const sampleVideo = "https://www.w3schools.com/html/mov_bbb.mp4";
-        mediaOutput.innerHTML = `
-            <div style="background:#07121f; border-radius: 20px; padding: 15px;">
-                <strong>🎬 فيديو طويل تم إنشاؤه بنجاح (أكثر من 55 دقيقة):</strong><br>
-                <video width="100%" controls>
-                    <source src="${sampleVideo}" type="video/mp4">
-                    متصفحك لا يدعم عرض الفيديو.
-                </video>
-                <div style="margin-top:12px; font-size:0.85rem; background:#00aaff20; padding:8px; border-radius:12px;">
-                    ✅ الفيديو المولد موضوع: "${prompt}" | المدة المطلوبة: ${duration} (تم إنشاء فيديو تجريبي توضيحي).<br>
-                    🚀 JobLens AI قادر على إنتاج فيديوهات تتجاوز 55 دقيقة باستخدام محركات الذكاء الاصطناعي المتطورة (Sora-like, HeyGen, etc.)
-                </div>
-            </div>
-        `;
-    }
-
-    sendBtn.addEventListener('click', handleUserQuery);
-    genImageBtn.addEventListener('click', generateImage);
-    genVideoBtn.addEventListener('click', generateLongVideo);
-    
-    userInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleUserQuery();
-        }
-    });
-    
-    setTimeout(() => {
-        addMessage("💡 ملاحظة: النظام يوجه الأسئلة إلى: Gemini (معلومات)، DeepSeek (أمن سيبراني)، Code Expert (برمجة). وجميع المخرجات يمكن تطويرها لاستخدام APIs حقيقية. أنشئ الصور والفيديوهات الطويلة بكل سهولة!", false, "AI Orchestrator");
-    }, 1000);
-</script>
-</body>
-</html>
+if __name__ == '__main__':
+    print('مُنظِّم الطالب يعمل على http://localhost:8000')
+    HTTPServer(('localhost', 8000), Handler).serve_forever()
